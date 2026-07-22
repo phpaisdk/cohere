@@ -1,14 +1,20 @@
-# Cohere provider for PHP AI SDK
+# aisdk/cohere
 
-Use Cohere's native v2 Chat and Embed APIs with the framework-agnostic PHP AI SDK.
+<a href="https://github.com/phpaisdk/cohere/actions"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/phpaisdk/cohere/tests.yml?branch=main&label=Tests"></a>
+<a href="https://packagist.org/packages/aisdk/cohere"><img alt="Latest Version" src="https://img.shields.io/packagist/v/aisdk/cohere"></a>
+<a href="https://packagist.org/packages/aisdk/cohere"><img alt="License" src="https://img.shields.io/packagist/l/aisdk/cohere"></a>
 
-## Install
+------
+
+Official Cohere provider for the PHP AI SDK. Uses Cohere's native v2 Chat and Embed APIs.
+
+## Installation
 
 ```bash
 composer require aisdk/cohere
 ```
 
-## Text generation
+## Basic Usage
 
 ```php
 use AiSdk\Cohere;
@@ -30,6 +36,24 @@ $result = Generate::embedding(['A document to index'])
     ->run();
 ```
 
-The provider supports Cohere v2 text generation, streaming, tools, structured output, reasoning, image input, and embeddings. Pass Cohere-specific request fields through `providerOptions('cohere', ['raw' => [...]])` for options outside the portable SDK surface.
+## Configuration
 
-See [PHP AI SDK documentation](https://phpaisdk.com/docs/cohere) and [Cohere's API reference](https://docs.cohere.com/v2/reference/chat).
+| Variable | Description | Default |
+| --- | --- | --- |
+| `COHERE_API_KEY` | API key for authentication | Required |
+| `COHERE_BASE_URL` | Base URL for API requests | `https://api.cohere.com` |
+
+## Supported Capabilities
+
+| Capability | Support |
+| --- | --- |
+| Text generation and streaming | Native v2 Chat API |
+| Tools, structured output, reasoning, image input | Native where supported by the selected model |
+| Embeddings | Native v2 Embed API |
+
+Use `providerOptions('cohere', ['raw' => [...]])` for Cohere fields outside the portable SDK surface. Model IDs are opaque strings and are validated by Cohere.
+
+## Documentation
+
+- [Cohere v2 Chat API reference](https://docs.cohere.com/v2/reference/chat)
+- [PHP AI SDK documentation](https://phpaisdk.com/docs/cohere)
