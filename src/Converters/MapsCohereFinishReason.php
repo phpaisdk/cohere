@@ -11,7 +11,11 @@ final class MapsCohereFinishReason
     public static function fromApi(?string $reason): FinishReason
     {
         return match ($reason) {
-            'COMPLETE', 'STOP_SEQUENCE' => FinishReason::Stop, 'MAX_TOKENS' => FinishReason::Length, 'TOOL_CALL' => FinishReason::ToolCalls, 'ERROR' => FinishReason::Error, default => FinishReason::Unknown
+            'COMPLETE', 'STOP_SEQUENCE' => FinishReason::Stop,
+            'MAX_TOKENS' => FinishReason::Length,
+            'TOOL_CALL' => FinishReason::ToolCalls,
+            'ERROR' => FinishReason::Error,
+            default => FinishReason::Unknown,
         };
     }
 }
