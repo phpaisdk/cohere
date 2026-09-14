@@ -21,6 +21,7 @@ use AiSdk\Streaming\ReasoningDeltaPart;
 use AiSdk\Streaming\TextDeltaPart;
 use AiSdk\Streaming\ToolCallDeltaPart;
 use AiSdk\Support\Usage;
+use AiSdk\ToolChoice;
 use AiSdk\Utils\Support\Url;
 use Generator;
 
@@ -102,13 +103,41 @@ final class CohereTextModel extends BaseModel implements TextModelInterface
         if ($request->topP !== null) {
             $body['p'] = $request->topP;
         }
-        if ($request->tools !== []) {
+        if ($request->tools !== [] && $request->toolChoice?->type !== ToolChoice::NONE) {
             $body['tools'] = array_map(static fn($tool) => ['type' => 'function', 'function' => ['name' => $tool->name(), 'description' => $tool->description(), 'parameters' => $tool->inputSchemaForProvider()]], $request->tools);
+            $body['tool_choice'] = self::toolChoice($request->toolChoice);
         }
         if ($request->output?->kind === Output::KIND_OBJECT) {
             $body['response_format'] = ['type' => 'json_object', 'json_schema' => $request->output->schema?->jsonSchema()];
         }
-        $raw = $request->providerOptionsFor($this->provider())['raw'] ?? [];
+
+        return self::mergeOptions($body, $request->providerOptionsFor($this->provider()));
+    }
+
+    /** @return string|array<string, mixed> */
+    private static function toolChoice(?ToolChoice $choice): string|array
+    {
+        if ($choice === null) {
+            return 'auto';
+        }
+
+        return match ($choice->type) {
+            ToolChoice::TOOL => ['type' => 'function', 'function' => ['name' => (string) $choice->toolName]],
+            default => $choice->type,
+        };
+    }
+
+    /**
+     * @param array<string, mixed> $body
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     */
+    private static function mergeOptions(array $body, array $options): array
+    {
+        $raw = $options['raw'] ?? null;
+        unset($options['raw']);
+
+        $body = array_replace($body, $options);
 
         return is_array($raw) ? array_replace($body, $raw) : $body;
     }

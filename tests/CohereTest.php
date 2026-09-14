@@ -26,6 +26,25 @@ it('generates text through Cohere v2 chat', function (): void {
     expect($result->text)->toBe('Hello from Cohere')->and($result->usage->inputTokens)->toBe(5);
 });
 
+it('sends direct text options and portable tool choices', function (): void {
+    $client = new FakeHttpClient(200, json_encode(['id' => 'cohere-response', 'message' => ['content' => [['type' => 'text', 'text' => 'Done']]], 'finish_reason' => 'COMPLETE']));
+    configureCohere($client);
+    Cohere::create(['apiKey' => 'cohere-test']);
+
+    Generate::text('Hi')
+        ->model(Cohere::model('command-a-03-2025'))
+        ->tool(\AiSdk\Tool::make('weather'))
+        ->toolChoice(\AiSdk\ToolChoice::tool('weather'))
+        ->providerOptions('cohere', ['safety_mode' => 'strict'])
+        ->run();
+
+    expect($client->sentBody()['safety_mode'])->toBe('strict')
+        ->and($client->sentBody()['tool_choice'])->toBe([
+            'type' => 'function',
+            'function' => ['name' => 'weather'],
+        ]);
+});
+
 it('uses Cohere v2 embeddings', function (): void {
     $client = new FakeHttpClient(200, json_encode(['embeddings' => ['float' => [[0.1, 0.2]]], 'meta' => ['billed_units' => ['input_tokens' => 4]]]));
     configureCohere($client);
