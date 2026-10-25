@@ -99,7 +99,13 @@ final class CohereTextModel extends BaseModel implements TextModelInterface
     /** @return array<string, mixed> */
     private function body(TextModelRequest $request, bool $stream): array
     {
-        $body = ['model' => $this->modelId, 'messages' => ConvertsCohereMessages::build($request->messages, $request->system), 'max_tokens' => $request->maxTokens, 'temperature' => $request->temperature, 'stream' => $stream];
+        $body = ['model' => $this->modelId, 'messages' => ConvertsCohereMessages::build($request->messages, $request->system), 'stream' => $stream];
+        if ($request->maxTokens !== null) {
+            $body['max_tokens'] = $request->maxTokens;
+        }
+        if ($request->temperature !== null) {
+            $body['temperature'] = $request->temperature;
+        }
         if ($request->topP !== null) {
             $body['p'] = $request->topP;
         }
