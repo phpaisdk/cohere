@@ -2,7 +2,7 @@
 
 Notable changes to `aisdk/cohere`. Release notes are also published at https://github.com/phpaisdk/cohere/releases.
 
-## Unreleased (v0.10.2)
+## v0.10.2 — 2026-10-29
 
 - Verify that chat usage includes all input tokens rather than billed units in responses and streams.
 
