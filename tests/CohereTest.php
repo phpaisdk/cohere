@@ -64,3 +64,18 @@ it('rejects a successful response that has no message', function (string $body):
 
     expect(fn() => Generate::text('Hi')->model(Cohere::model('command-a-03-2025'))->run())->toThrow(AiSdk\Exceptions\InvalidResponseException::class);
 })->with(['{}', '[1,2]', '{"message":"quota exceeded"}']);
+
+it('uses actual Cohere chat tokens instead of billed units on both paths', function (bool $stream): void {
+    $usage = ['tokens' => ['input_tokens' => 100, 'output_tokens' => 20], 'billed_units' => ['input_tokens' => 30, 'output_tokens' => 20]];
+    $payload = ['message' => ['content' => [['type' => 'text', 'text' => 'Hello']]], 'finish_reason' => 'COMPLETE', 'usage' => $usage];
+    $body = $stream
+        ? 'data: ' . json_encode(['type' => 'message-end', 'delta' => ['finish_reason' => 'COMPLETE', 'usage' => $usage]], JSON_THROW_ON_ERROR) . "\n\n"
+        : json_encode($payload, JSON_THROW_ON_ERROR);
+    configureCohere(new FakeHttpClient(200, $body, $stream ? 'text/event-stream' : 'application/json'));
+    Cohere::create(['apiKey' => 'cohere-test']);
+    $generation = Generate::text('Hi')->model(Cohere::model('command-a'));
+    $result = $stream ? $generation->stream()->run() : $generation->run();
+    expect($result->usage->inputTokens)->toBe(100)->and($result->usage->outputTokens)->toBe(20)
+        ->and($result->usage->totalTokens)->toBe(120)->and($result->usage->cachedInputTokens)->toBeNull()
+        ->and($result->usage->cacheWriteInputTokens)->toBeNull()->and($result->usage->reasoningTokens)->toBeNull();
+})->with([false, true]);
