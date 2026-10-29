@@ -57,3 +57,10 @@ it('accepts opaque Cohere model identifiers', function (): void {
     Cohere::create(['apiKey' => 'cohere-test']);
     expect(Cohere::model('private-cohere-model')->modelId())->toBe('private-cohere-model');
 });
+
+it('rejects a successful response that has no message', function (string $body): void {
+    configureCohere(new FakeHttpClient(200, $body));
+    Cohere::create(['apiKey' => 'cohere-test']);
+
+    expect(fn() => Generate::text('Hi')->model(Cohere::model('command-a-03-2025'))->run())->toThrow(AiSdk\Exceptions\InvalidResponseException::class);
+})->with(['{}', '[1,2]', '{"message":"quota exceeded"}']);

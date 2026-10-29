@@ -10,6 +10,7 @@ use AiSdk\Cohere\Converters\ConvertsCohereMessages;
 use AiSdk\Cohere\Converters\MapsCohereFinishReason;
 use AiSdk\Contracts\BaseModel;
 use AiSdk\Contracts\TextModelInterface;
+use AiSdk\Exceptions\InvalidResponseException;
 use AiSdk\Outputs\Output;
 use AiSdk\Requests\TextModelRequest;
 use AiSdk\Responses\Parts\ReasoningPart;
@@ -43,6 +44,11 @@ final class CohereTextModel extends BaseModel implements TextModelInterface
     {
         $this->ensureTextRequestSupported($request, self::CAPABILITIES);
         $payload = $this->runner($this->options->sdk)->postJson(Url::joinPath($this->options->baseUrl, '/chat'), $this->body($request, false), $this->options->authHeaders(), $this->provider());
+        if (! is_array($payload['message'] ?? null)) {
+            $error = $payload['message'] ?? null;
+
+            throw InvalidResponseException::forProvider('cohere', 'Cohere returned an unexpected response' . (is_string($error) ? ': ' . $error : ' without a message.'));
+        }
         $parts = [];
         foreach ((array) ($payload['message']['content'] ?? []) as $content) {
             if (($content['type'] ?? null) === 'text' && is_string($content['text'] ?? null)) {
