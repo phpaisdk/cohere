@@ -2,6 +2,10 @@
 
 Notable changes to `aisdk/cohere`. Release notes are also published at https://github.com/phpaisdk/cohere/releases.
 
+## Unreleased (v0.10.1)
+
+- Successful responses without a message raise `InvalidResponseException`.
+
 ## v0.10.0 — 2026-10-29
 
 ### What's new
